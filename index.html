@@ -243,9 +243,9 @@
     </div>
 
     <script>
-        // Конфигурация
+        // Конфигурация с ВАШИМ Client ID
         const CONFIG = {
-            TWITCH_CLIENT_ID: 'lb93nagju8liijf9xdtb17virppha2'
+            TWITCH_CLIENT_ID: '93ar39n31bidquupad43n697o9soqz'
         };
         
         // Текущий пользователь
@@ -254,6 +254,7 @@
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             console.log('42UP starting...');
+            console.log('Using Client ID:', CONFIG.TWITCH_CLIENT_ID);
             
             // Проверяем сохранённого пользователя
             const saved = localStorage.getItem('42up_user');
@@ -282,7 +283,8 @@
                 '&response_type=token' +
                 '&scope=user:read:email';
             
-            console.log('Redirecting to Twitch...');
+            console.log('Redirect URI:', redirectUri);
+            console.log('Full Auth URL:', authUrl);
             window.location.href = authUrl;
         }
         
@@ -463,7 +465,6 @@
             document.querySelectorAll('.filter-tab').forEach((btn, i) => {
                 btn.classList.toggle('active', (type === 'all' && i === 0) || (type === 'stream' && i === 1));
             });
-            // TODO: применить фильтр
         }
         
         // Показать популярное
@@ -563,7 +564,7 @@
             return date.toLocaleDateString('ru-RU');
         }
         
-        console.log('42UP ready!');
+        console.log('42UP ready with Client ID:', CONFIG.TWITCH_CLIENT_ID);
     </script>
 </body>
 </html>
