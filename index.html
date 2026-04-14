@@ -2,12 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
     <title>42UP — Стримерское комьюнити</title>
     
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,169 +24,256 @@
                     <span class="logo-up">UP</span>
                 </div>
             </div>
-            <div class="header-center">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" placeholder="Поиск..." class="search-input" id="searchInput" disabled>
-                </div>
-            </div>
+            <div class="header-center"></div>
             <div class="header-right" id="authContainer">
-                <!-- Кнопка будет вставлена через JS -->
-                <button class="btn btn-primary" onclick="window.authManager?.login()">
+                <button class="btn btn-primary" id="loginBtn">
                     <i class="fab fa-twitch"></i> Войти через Twitch
                 </button>
             </div>
         </header>
 
         <div class="main-layout">
-            <aside class="sidebar" id="sidebar">
+            <aside class="sidebar">
                 <nav class="sidebar-nav">
-                    <a href="#/" class="nav-item active" data-page="feed">
-                        <i class="fas fa-home"></i>
-                        <span>Лента</span>
-                    </a>
-                    <a href="#/popular" class="nav-item" data-page="popular">
-                        <i class="fas fa-fire"></i>
-                        <span>Популярное</span>
-                    </a>
-                    <a href="#/videos" class="nav-item" data-page="videos">
-                        <i class="fas fa-video"></i>
-                        <span>Видео</span>
-                    </a>
-                    <a href="#/profile" class="nav-item" data-page="profile">
-                        <i class="fas fa-user"></i>
-                        <span>Профиль</span>
-                    </a>
+                    <a href="#/" class="nav-item" data-page="feed"><i class="fas fa-home"></i><span>Лента</span></a>
+                    <a href="#/popular" class="nav-item" data-page="popular"><i class="fas fa-fire"></i><span>Популярное</span></a>
+                    <a href="#/videos" class="nav-item" data-page="videos"><i class="fas fa-video"></i><span>Видео</span></a>
+                    <a href="#/profile" class="nav-item" data-page="profile"><i class="fas fa-user"></i><span>Профиль</span></a>
                 </nav>
                 <div class="sidebar-footer">
                     <p class="footer-text">
-                        Разработано — <a href="https://t.me/yafanof" target="_blank">FanoFFFF</a><br>
+                        <a href="https://t.me/yafanof" target="_blank">FanoFFFF</a> | 
                         <a href="https://t.me/up42ss" target="_blank">Телеграм 42UP</a>
                     </p>
                 </div>
             </aside>
 
-            <main class="main-content" id="mainContent">
+            <main class="main-content">
                 <div id="pageContainer">
-                    <div class="loading">
+                    <div style="text-align: center; padding: 40px;">
                         <div class="spinner"></div>
                         <p>Загрузка...</p>
                     </div>
                 </div>
             </main>
 
-            <nav class="mobile-nav" id="mobileNav">
-                <a href="#/" class="mobile-nav-item active" data-page="feed">
-                    <i class="fas fa-home"></i>
-                    <span>Лента</span>
-                </a>
-                <a href="#/popular" class="mobile-nav-item" data-page="popular">
-                    <i class="fas fa-fire"></i>
-                    <span>Популярное</span>
-                </a>
-                <a href="#/videos" class="mobile-nav-item" data-page="videos">
-                    <i class="fas fa-video"></i>
-                    <span>Видео</span>
-                </a>
-                <a href="#/profile" class="mobile-nav-item" data-page="profile">
-                    <i class="fas fa-user"></i>
-                    <span>Профиль</span>
-                </a>
+            <nav class="mobile-nav">
+                <a href="#/" class="mobile-nav-item"><i class="fas fa-home"></i><span>Лента</span></a>
+                <a href="#/popular" class="mobile-nav-item"><i class="fas fa-fire"></i><span>Популярное</span></a>
+                <a href="#/videos" class="mobile-nav-item"><i class="fas fa-video"></i><span>Видео</span></a>
+                <a href="#/profile" class="mobile-nav-item"><i class="fas fa-user"></i><span>Профиль</span></a>
             </nav>
         </div>
-
-        <div id="modalContainer" class="modal-container"></div>
-        <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <!-- ВСЕ СКРИПТЫ ЗАГРУЖАЮТСЯ В ПРАВИЛЬНОМ ПОРЯДКЕ -->
     <script src="config.js"></script>
-    <script>
-        // Ждём загрузки config
-        console.log('Config loaded, CONFIG:', typeof CONFIG !== 'undefined' ? 'OK' : 'FAILED');
-    </script>
     <script src="google-sheets.js"></script>
-    <script src="auth.js"></script>
     <script>
-        // Проверяем что authManager создан
-        console.log('Auth loaded, authManager:', typeof authManager !== 'undefined' ? 'OK' : 'FAILED');
+        // Twitch авторизация
+        const CONFIG = window.CONFIG || {
+            TWITCH: { CLIENT_ID: 'lb93nagju8liijf9xdtb17virppha2' }
+        };
         
-        // Если authManager не создался - создаём вручную
-        if (typeof authManager === 'undefined') {
-            console.warn('Creating fallback authManager');
-            window.authManager = {
-                login: function() {
-                    console.log('Fallback login called');
-                    const clientId = CONFIG?.TWITCH?.CLIENT_ID || 'lb93nagju8liijf9xdtb17virppha2';
-                    const redirectUri = window.location.origin + window.location.pathname;
-                    const authUrl = 'https://id.twitch.tv/oauth2/authorize' +
-                        '?client_id=' + clientId +
-                        '&redirect_uri=' + encodeURIComponent(redirectUri) +
-                        '&response_type=token' +
-                        '&scope=user:read:email';
-                    window.location.href = authUrl;
-                },
-                logout: function() {
-                    localStorage.removeItem('42up_user');
-                    location.reload();
-                }
-            };
-        }
-    </script>
-    <script src="script.js"></script>
-    <script src="popular.js"></script>
-    <script src="video.js"></script>
-    <script src="profile.js"></script>
-    <script src="admin.js"></script>
-    
-    <script>
-        // Финальная инициализация
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, starting app...');
+        window.authManager = {
+            login: function() {
+                console.log('Login clicked');
+                const clientId = CONFIG.TWITCH.CLIENT_ID;
+                const redirectUri = window.location.origin + window.location.pathname;
+                const authUrl = 'https://id.twitch.tv/oauth2/authorize' +
+                    '?client_id=' + clientId +
+                    '&redirect_uri=' + encodeURIComponent(redirectUri) +
+                    '&response_type=token' +
+                    '&scope=user:read:email';
+                console.log('Redirecting to Twitch...');
+                window.location.href = authUrl;
+            },
             
-            // Обновляем кнопку входа
-            const savedUser = localStorage.getItem('42up_user');
-            if (savedUser) {
-                try {
-                    window.currentUser = JSON.parse(savedUser);
-                    console.log('User restored:', currentUser.display_name);
-                    
-                    const authContainer = document.getElementById('authContainer');
-                    if (authContainer && currentUser) {
-                        authContainer.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div onclick="window.location.href='#/profile'" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; background: #252525; border-radius: 20px; cursor: pointer;">
-                                    <img src="${currentUser.profile_image_url}" style="width: 32px; height: 32px; border-radius: 50%;">
-                                    <span style="color: white; font-size: 14px;">${currentUser.display_name}</span>
-                                </div>
-                                <button onclick="authManager.logout()" style="padding: 8px 16px; background: #252525; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                                    Выйти
-                                </button>
-                            </div>
-                        `;
+            logout: function() {
+                localStorage.removeItem('42up_user');
+                window.currentUser = null;
+                location.reload();
+            },
+            
+            checkAuth: function() {
+                const hash = window.location.hash;
+                if (hash.includes('access_token')) {
+                    const params = new URLSearchParams(hash.substring(1));
+                    const token = params.get('access_token');
+                    if (token) {
+                        this.fetchTwitchUser(token);
+                        window.location.hash = '';
                     }
-                } catch (e) {
-                    console.error('Failed to restore user:', e);
                 }
-            }
+                
+                const saved = localStorage.getItem('42up_user');
+                if (saved) {
+                    try {
+                        window.currentUser = JSON.parse(saved);
+                        this.updateUI();
+                    } catch(e) {}
+                }
+            },
             
-            // Запускаем приложение
-            if (typeof initApp === 'function') {
-                initApp();
-            } else {
-                console.warn('initApp not found, creating fallback');
-                window.initApp = function() {
-                    document.getElementById('pageContainer').innerHTML = `
-                        <div style="padding: 40px; text-align: center;">
-                            <h2>42UP</h2>
-                            <p>Стримерское комьюнити</p>
-                            <p>Сайт загружен, но требуется настройка скриптов</p>
+            fetchTwitchUser: async function(token) {
+                try {
+                    const resp = await fetch('https://api.twitch.tv/helix/users', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Client-Id': CONFIG.TWITCH.CLIENT_ID
+                        }
+                    });
+                    const data = await resp.json();
+                    if (data.data && data.data[0]) {
+                        const u = data.data[0];
+                        const user = {
+                            id: u.id,
+                            login: u.login,
+                            display_name: u.display_name,
+                            profile_image_url: u.profile_image_url,
+                            email: u.email || '',
+                            roles: [],
+                            registered_at: new Date().toISOString()
+                        };
+                        window.currentUser = user;
+                        localStorage.setItem('42up_user', JSON.stringify(user));
+                        this.updateUI();
+                        location.reload();
+                    }
+                } catch(e) {
+                    console.error('Auth error:', e);
+                    alert('Ошибка авторизации: ' + e.message);
+                }
+            },
+            
+            updateUI: function() {
+                const container = document.getElementById('authContainer');
+                if (!container) return;
+                
+                if (window.currentUser) {
+                    container.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div onclick="window.location.href='#/profile'" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; background: #252525; border-radius: 20px; cursor: pointer;">
+                                <img src="${currentUser.profile_image_url}" style="width: 32px; height: 32px; border-radius: 50%;">
+                                <span style="color: white;">${currentUser.display_name}</span>
+                            </div>
+                            <button onclick="authManager.logout()" style="padding: 8px 16px; background: #252525; color: white; border: none; border-radius: 6px; cursor: pointer;">Выйти</button>
                         </div>
                     `;
-                };
-                initApp();
+                }
+                
+                const createCard = document.querySelector('.create-post-card');
+                if (createCard) createCard.style.display = currentUser ? 'block' : 'none';
             }
+        };
+        
+        // Привязываем кнопку
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('loginBtn');
+            if (btn) {
+                btn.onclick = function() { authManager.login(); };
+            }
+            authManager.checkAuth();
+            authManager.updateUI();
+            
+            // Загружаем ленту
+            loadFeed();
         });
+        
+        function loadFeed() {
+            const container = document.getElementById('pageContainer');
+            if (!container) return;
+            
+            const isAuth = !!window.currentUser;
+            
+            container.innerHTML = `
+                <div class="feed-page">
+                    ${isAuth ? `
+                        <div class="create-post-card" style="background: #1A1A1A; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                            <textarea id="postContent" placeholder="Что нового?" maxlength="150" rows="2" style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 8px; color: white; resize: none;"></textarea>
+                            <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+                                <span id="charCount" style="color: #666;">0/150</span>
+                                <button onclick="createPost()" style="padding: 8px 20px; background: #9147FF; color: white; border: none; border-radius: 6px; cursor: pointer;">Отправить</button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="background: #1A1A1A; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                            <i class="fab fa-twitch" style="font-size: 40px; color: #9147FF; margin-bottom: 15px;"></i>
+                            <p style="color: #AAA;">Войдите через Twitch, чтобы создавать посты</p>
+                        </div>
+                    `}
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="filter-btn active" onclick="filterPosts('all')" style="padding: 8px 16px; background: #252525; color: white; border: none; border-radius: 20px; cursor: pointer;">Все посты</button>
+                        <button class="filter-btn" onclick="filterPosts('stream')" style="padding: 8px 16px; background: #252525; color: white; border: none; border-radius: 20px; cursor: pointer;">Для стрима</button>
+                    </div>
+                    
+                    <div id="postsContainer">
+                        <p style="color: #666; text-align: center; padding: 40px;">Нет постов</p>
+                    </div>
+                </div>
+            `;
+            
+            // Счётчик символов
+            const ta = document.getElementById('postContent');
+            const cc = document.getElementById('charCount');
+            if (ta && cc) {
+                ta.oninput = function() {
+                    cc.textContent = this.value.length + '/150';
+                };
+            }
+            
+            // Загружаем посты
+            const posts = JSON.parse(localStorage.getItem('42up_posts') || '[]');
+            const postsContainer = document.getElementById('postsContainer');
+            if (posts.length && postsContainer) {
+                postsContainer.innerHTML = posts.slice(0, 10).map(p => `
+                    <div style="background: #1A1A1A; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                        <p style="color: white;">${escapeHtml(p.content)}</p>
+                        <small style="color: #666;">${new Date(p.created_at).toLocaleString('ru')}</small>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        window.createPost = function() {
+            const content = document.getElementById('postContent')?.value.trim();
+            if (!content) return;
+            
+            const posts = JSON.parse(localStorage.getItem('42up_posts') || '[]');
+            posts.unshift({
+                id: Date.now(),
+                content: content,
+                author_id: currentUser?.id,
+                created_at: new Date().toISOString()
+            });
+            localStorage.setItem('42up_posts', JSON.stringify(posts));
+            loadFeed();
+        };
+        
+        window.filterPosts = function(type) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            loadFeed();
+        };
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Роутинг
+        window.addEventListener('hashchange', function() {
+            const hash = window.location.hash || '#/';
+            document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.getAttribute('href') === hash) {
+                    el.classList.add('active');
+                }
+            });
+        });
+        
+        console.log('42UP ready!');
     </script>
 </body>
 </html>
