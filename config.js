@@ -2,7 +2,7 @@
 const CONFIG = {
     // Twitch OAuth
     TWITCH: {
-        CLIENT_ID: 'lb93nagju8liijf9xdtb17virppha2',
+        CLIENT_ID: '93ar39n31bidquupad43n697o9soqz',
         REDIRECT_URI: window.location.origin + window.location.pathname,
         SCOPE: 'user:read:email'
     },
