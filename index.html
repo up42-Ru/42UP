@@ -6,18 +6,12 @@
     <meta name="theme-color" content="#0A0A0A">
     <title>42UP — Стримерское комьюнити</title>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
-        <!-- Header -->
         <header class="header">
             <div class="header-left">
                 <div class="logo">
@@ -32,18 +26,14 @@
                 </div>
             </div>
             <div class="header-right" id="authContainer">
-                <!-- Auth buttons will be injected here -->
-                <div class="auth-buttons">
-                    <button class="btn btn-primary" onclick="authManager.login()">
-                        <i class="fab fa-twitch"></i> Войти через Twitch
-                    </button>
-                </div>
+                <!-- Кнопка будет вставлена через JS -->
+                <button class="btn btn-primary" onclick="window.authManager?.login()">
+                    <i class="fab fa-twitch"></i> Войти через Twitch
+                </button>
             </div>
         </header>
 
-        <!-- Main Layout -->
         <div class="main-layout">
-            <!-- Desktop Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <nav class="sidebar-nav">
                     <a href="#/" class="nav-item active" data-page="feed">
@@ -71,10 +61,8 @@
                 </div>
             </aside>
 
-            <!-- Main Content -->
             <main class="main-content" id="mainContent">
                 <div id="pageContainer">
-                    <!-- Dynamic content will be loaded here -->
                     <div class="loading">
                         <div class="spinner"></div>
                         <p>Загрузка...</p>
@@ -82,7 +70,6 @@
                 </div>
             </main>
 
-            <!-- Mobile Bottom Navigation -->
             <nav class="mobile-nav" id="mobileNav">
                 <a href="#/" class="mobile-nav-item active" data-page="feed">
                     <i class="fas fa-home"></i>
@@ -103,177 +90,98 @@
             </nav>
         </div>
 
-        <!-- Modal Container -->
         <div id="modalContainer" class="modal-container"></div>
-
-        <!-- Toast Container -->
         <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <!-- Scripts -->
+    <!-- ВСЕ СКРИПТЫ ЗАГРУЖАЮТСЯ В ПРАВИЛЬНОМ ПОРЯДКЕ -->
     <script src="config.js"></script>
-    <script src="auth.js"></script>
+    <script>
+        // Ждём загрузки config
+        console.log('Config loaded, CONFIG:', typeof CONFIG !== 'undefined' ? 'OK' : 'FAILED');
+    </script>
     <script src="google-sheets.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Проверяем что authManager создан
+        console.log('Auth loaded, authManager:', typeof authManager !== 'undefined' ? 'OK' : 'FAILED');
+        
+        // Если authManager не создался - создаём вручную
+        if (typeof authManager === 'undefined') {
+            console.warn('Creating fallback authManager');
+            window.authManager = {
+                login: function() {
+                    console.log('Fallback login called');
+                    const clientId = CONFIG?.TWITCH?.CLIENT_ID || 'lb93nagju8liijf9xdtb17virppha2';
+                    const redirectUri = window.location.origin + window.location.pathname;
+                    const authUrl = 'https://id.twitch.tv/oauth2/authorize' +
+                        '?client_id=' + clientId +
+                        '&redirect_uri=' + encodeURIComponent(redirectUri) +
+                        '&response_type=token' +
+                        '&scope=user:read:email';
+                    window.location.href = authUrl;
+                },
+                logout: function() {
+                    localStorage.removeItem('42up_user');
+                    location.reload();
+                }
+            };
+        }
+    </script>
     <script src="script.js"></script>
     <script src="popular.js"></script>
     <script src="video.js"></script>
     <script src="profile.js"></script>
     <script src="admin.js"></script>
     
-    <!-- Initialize App -->
     <script>
-        // Проверяем, что все скрипты загружены
-        console.log('42UP - Starting app...');
-        
-        // Ждем загрузки DOM
+        // Финальная инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
+            console.log('DOM loaded, starting app...');
             
-            // Проверяем наличие необходимых объектов
-            if (typeof CONFIG === 'undefined') {
-                console.error('CONFIG not loaded! Check config.js');
-                return;
-            }
-            
-            if (typeof authManager === 'undefined') {
-                console.error('authManager not loaded! Check auth.js');
-                // Создаем заглушку
-                window.authManager = {
-                    login: function() {
-                        alert('Авторизация временно недоступна. Проверьте config.js');
-                    },
-                    logout: function() {
-                        localStorage.removeItem('42up_user');
-                        location.reload();
-                    },
-                    renderAuthButton: function() {
-                        console.log('Auth button render');
-                    }
-                };
-            }
-            
-            if (typeof DB === 'undefined') {
-                console.error('DB not loaded! Check google-sheets.js');
-                // Создаем заглушку БД
-                window.DB = {
-                    saveUser: async (user) => {
-                        console.log('Saving user:', user);
-                        localStorage.setItem('42up_current_user', JSON.stringify(user));
-                        return user;
-                    },
-                    getUser: async (id) => {
-                        return JSON.parse(localStorage.getItem('42up_current_user') || 'null');
-                    },
-                    getPosts: async () => {
-                        return JSON.parse(localStorage.getItem('42up_posts') || '[]');
-                    },
-                    savePost: async (post) => {
-                        const posts = JSON.parse(localStorage.getItem('42up_posts') || '[]');
-                        post.id = Date.now();
-                        posts.unshift(post);
-                        localStorage.setItem('42up_posts', JSON.stringify(posts));
-                        return post;
-                    },
-                    getPostLikes: async () => {
-                        return { likes: 0, dislikes: 0, userVote: null };
-                    },
-                    toggleLike: async () => {
-                        return { likes: 0, dislikes: 0 };
-                    },
-                    getVideos: async () => {
-                        return [];
-                    },
-                    saveVideo: async (video) => {
-                        const videos = JSON.parse(localStorage.getItem('42up_videos') || '[]');
-                        video.id = Date.now();
-                        videos.push(video);
-                        localStorage.setItem('42up_videos', JSON.stringify(videos));
-                        return video;
-                    },
-                    saveReport: async (report) => {
-                        console.log('Report saved:', report);
-                        return report;
-                    },
-                    getAllUsers: async () => {
-                        return [];
-                    },
-                    deletePost: async (id) => {
-                        console.log('Post deleted:', id);
-                    }
-                };
-            }
-            
-            if (typeof initApp === 'undefined') {
-                console.error('initApp not found! Check script.js');
-                // Создаем простую инициализацию
-                window.initApp = function() {
-                    console.log('Fallback init');
-                    const container = document.getElementById('pageContainer');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="feed-page">
-                                <h2>Добро пожаловать в 42UP!</h2>
-                                <p>Стримерское комьюнити</p>
-                                <div id="postsContainer"></div>
+            // Обновляем кнопку входа
+            const savedUser = localStorage.getItem('42up_user');
+            if (savedUser) {
+                try {
+                    window.currentUser = JSON.parse(savedUser);
+                    console.log('User restored:', currentUser.display_name);
+                    
+                    const authContainer = document.getElementById('authContainer');
+                    if (authContainer && currentUser) {
+                        authContainer.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div onclick="window.location.href='#/profile'" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; background: #252525; border-radius: 20px; cursor: pointer;">
+                                    <img src="${currentUser.profile_image_url}" style="width: 32px; height: 32px; border-radius: 50%;">
+                                    <span style="color: white; font-size: 14px;">${currentUser.display_name}</span>
+                                </div>
+                                <button onclick="authManager.logout()" style="padding: 8px 16px; background: #252525; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                    Выйти
+                                </button>
                             </div>
                         `;
                     }
-                    
-                    // Навигация
-                    document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(item => {
-                        item.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(i => i.classList.remove('active'));
-                            item.classList.add('active');
-                        });
-                    });
-                };
-            }
-            
-            // Запускаем приложение
-            try {
-                initApp();
-            } catch (error) {
-                console.error('Error initializing app:', error);
-                const container = document.getElementById('pageContainer');
-                if (container) {
-                    container.innerHTML = `
-                        <div style="text-align: center; padding: 40px;">
-                            <h2>42UP</h2>
-                            <p>Стримерское комьюнити</p>
-                            <p style="color: #FF0000;">Ошибка загрузки: ${error.message}</p>
-                            <button class="btn btn-primary" onclick="location.reload()">Перезагрузить</button>
-                        </div>
-                    `;
+                } catch (e) {
+                    console.error('Failed to restore user:', e);
                 }
             }
             
-            // Проверяем авторизацию
-            const savedUser = localStorage.getItem('42up_user');
-            if (savedUser) {
-                window.currentUser = JSON.parse(savedUser);
-                console.log('User loaded from storage:', currentUser);
-            }
-            
-            // Рендерим кнопку авторизации
-            if (authManager && typeof authManager.renderAuthButton === 'function') {
-                authManager.renderAuthButton();
+            // Запускаем приложение
+            if (typeof initApp === 'function') {
+                initApp();
+            } else {
+                console.warn('initApp not found, creating fallback');
+                window.initApp = function() {
+                    document.getElementById('pageContainer').innerHTML = `
+                        <div style="padding: 40px; text-align: center;">
+                            <h2>42UP</h2>
+                            <p>Стримерское комьюнити</p>
+                            <p>Сайт загружен, но требуется настройка скриптов</p>
+                        </div>
+                    `;
+                };
+                initApp();
             }
         });
-        
-        // Функция для показа уведомлений
-        function showToast(message, type = 'info') {
-            console.log(`Toast [${type}]:`, message);
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            container.appendChild(toast);
-            
-            setTimeout(() => toast.remove(), 3000);
-        }
     </script>
 </body>
 </html>
